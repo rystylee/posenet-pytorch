@@ -13,15 +13,17 @@ parser.add_argument('--cam_height', type=int, default=720)
 parser.add_argument('--scale_factor', type=float, default=0.7125)
 args = parser.parse_args()
 
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+
 
 def main():
     model = posenet.load_model(args.model)
-    model = model.cuda()
+    model = model.to(device)
     output_stride = model.output_stride
 
     cap = cv2.VideoCapture(args.cam_id)
-    cap.set(3, args.cam_width)
-    cap.set(4, args.cam_height)
+    # cap.set(3, args.cam_width)
+    # cap.set(4, args.cam_height)
 
     start = time.time()
     frame_count = 0
@@ -30,7 +32,7 @@ def main():
             cap, scale_factor=args.scale_factor, output_stride=output_stride)
 
         with torch.no_grad():
-            input_image = torch.Tensor(input_image).cuda()
+            input_image = torch.Tensor(input_image).to(device)
 
             heatmaps_result, offsets_result, displacement_fwd_result, displacement_bwd_result = model(input_image)
 
